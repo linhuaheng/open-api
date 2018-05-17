@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd"
+>
+
+    <!-- 引入数据仓库,只有pom中添加依赖才有用.如果不引用,则不会扫描到 -->
+    <!--<import resource="classpath*:spring-db-dw.xml"/>-->
+
+    <!--   1.    jdbc,mybatis配置 开始  -->
+
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <bean id="disconfMgrBean" class="com.baidu.disconf.client.DisconfMgrBean"
+          destroy-method="destroy">
+        <property name="scanPackage" value="com.wwwarehouse.xdw.openapi"/>
+    </bean>
+    <bean id="disconfMgrBean2" class="com.baidu.disconf.client.DisconfMgrBeanSecond"
+          init-method="init" destroy-method="destroy">
+    </bean>
+
+    <bean id="configproperties_no_reloadable_disconf"
+          class="com.baidu.disconf.client.addons.properties.ReloadablePropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>ds-jdbc.properties</value>
+                <value>service-config.properties</value>
+                <value>server-outer.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="propertyConfigurerForProject2"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        <property name="propertiesArray">
+            <list>
+                <ref bean="configproperties_no_reloadable_disconf"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="oidruidDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init"
+          destroy-method="close">
+        <property name="driverClassName" value="${ds.jdbc.driverClassName}"/>
+        <property name="url" value="${ds.jdbc.url}"/>
+        <property name="username" value="${ds.jdbc.username}"/>
+        <property name="password" value="${ds.jdbc.password}"/>
+
+        <!--配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="${ds.jdbc.initialSize}"/>
+        <property name="minIdle" value="${ds.jdbc.minIdle}"/>
+        <property name="maxActive" value="${ds.jdbc.maxActive}"/>
+
+        <!--maxWait: 配置获取连接等待超时的时间 6000毫秒/1000等于60秒-->
+        <property name="maxWait" value="${ds.jdbc.maxWait}"/>
+
+        <!--removeAbandoned: 是否自动回收超时连接 可以检测连接泄露-->
+        <!--removeAbandonedTimeout: 超时时间(以秒数为单位)-->
+        <property name="removeAbandoned" value="${ds.jdbc.removeAbandoned}"/>
+        <property name="removeAbandonedTimeout" value="${ds.jdbc.removeAbandonedTimeout}"/>
+        <property name="logAbandoned" value="true"/> <!-- 关闭abanded连接时输出错误日志 -->
+
+
+        <property name="defaultAutoCommit" value="false"/>
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+
+        <!--  -->
+        <property name="validationQuery" value="SELECT 'x' FROM DUAL"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+
+        <!-- 执行查询与事务的超时设置 -->
+        <property name="queryTimeout" value="${ds.jdbc.queryTimeout}"/>
+        <property name="transactionQueryTimeout" value="${ds.jdbc.transactionQueryTimeout}"/>
+
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+        <property name="poolPreparedStatements" value="${ds.jdbc.poolPreparedStatements}"/>
+        <property name="maxOpenPreparedStatements" value="${ds.jdbc.maxOpenPreparedStatements}"/>
+        <property name="maxPoolPreparedStatementPerConnectionSize"
+                  value="${ds.jdbc.maxPoolPreparedStatementPerConnectionSize}"/>
+
+        <!-- 配置监控统计拦截的filters -->
+        <property name="filters" value="${ds.jdbc.filters}"/>
+        <property name="connectionProperties" value="druid.stat.mergeSql=true"/>
+        <property name="timeBetweenLogStatsMillis" value="300000"/>
+    </bean>
+
+
+    <bean id="oisqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="oidruidDataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <property name="mapperLocations" value="
+        classpath*:com/wwwarehouse/xdw/openapi/dao/mapper/*Mapper.xml,
+        classpath*:com/wwwarehouse/commons/ukid/mapper/*Mapper.xml,
+        classpath*:com/wwwarehouse/commons/mq/event/dao/*Mapper.xml"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.wwwarehouse.xdw.openapi.dao.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="oisqlSessionFactory"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.wwwarehouse.commons.mq.event.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="oisqlSessionFactory"/>
+    </bean>
+
+    <bean id="oiiscsBeanNameGenerator" class="com.wwwarehouse.commons.mybatis.IscsBeanNameGenerator">
+        <property name="namespace" value="datasync"/>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.wwwarehouse.commons.ukid.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="oisqlSessionFactory"/>
+        <property name="nameGenerator" ref="oiiscsBeanNameGenerator"/>
+    </bean>
+    <!--jdbc,mybatis配置 结束  -->
+
+
+    <!--  2  事务配置 开始 -->
+
+    <bean id="oiTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="oidruidDataSource"/>
+    </bean>
+
+    <!-- 2.2 注解管理事务 方式 开始   作为2.1的补充。可以在实现层自行判断 是否需要添加事务。注：类内方法间的调用不走经过aop，所以事务无效。需要尽量避免这种情况，要么2个方法都加事务，要么2个方法不写在同一个类中。-->
+    <tx:annotation-driven transaction-manager="oiTransactionManager"/>
+    <!--   注解管理事务 方式 结束 -->
+
+    <tx:advice id="txAdvice" transaction-manager="oiTransactionManager">
+        <tx:attributes>
+            <tx:method name="*" rollback-for="Exception"/>
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut id="serviceMethods"
+                      expression="execution(* com.wwwarehouse.xdw.openapi.service.*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethods"/>
+    </aop:config>
+
+    <!--
+    druid spring监控
+    https://github.com/alibaba/druid/wiki/%E9%85%8D%E7%BD%AE_Druid%E5%92%8CSpring%E5%85%B3%E8%81%94%E7%9B%91%E6%8E%A7%E9%85%8D%E7%BD%AE
+    -->
+    <bean id="oidruid-stat-interceptor"
+          class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor">
+    </bean>
+
+    <bean id="oidruid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut"
+          scope="prototype">
+        <property name="patterns">
+            <list>
+                <value>com.wwwarehouse.xdw.openapi.*.service.*</value>
+                <value>com.wwwarehouse.xdw.openapi.*.mq.*</value> <!-- 消费者-->
+            </list>
+        </property>
+    </bean>
+
+    <aop:config>
+        <aop:advisor advice-ref="oidruid-stat-interceptor"
+                     pointcut-ref="oidruid-stat-pointcut"/>
+    </aop:config>
+</beans>

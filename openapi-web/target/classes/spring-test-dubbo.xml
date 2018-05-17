@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+	     http://code.alibabatech.com/schema/dubbo
+	     http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <dubbo:application name="openapi-web-test" owner="xdw" organization="wwwarehouse"/>
+
+    <!-- zookeeper注册中心 -->
+    <dubbo:registry protocol="zookeeper" address="${dubbo.registry.address}"/>
+
+    <!-- 默认客户端配置 -->
+    <dubbo:consumer check="false" group="mock" />
+
+    <dubbo:reference id="amAppkeyService" interface="com.wwwarehouse.xdw.datasync.service.IAmAppkeyService"
+                     version="1.0.0.${dubbo.version.surfix}" protocol="dubbo" group="impl"/>
+</beans>

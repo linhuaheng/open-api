@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+
+    <!--发送的-->
+    <bean id="producerConfig" class="com.wwwarehouse.commons.mq.kafka.KafkaProducerConfig">
+        <property name="servers" value="${mq.serverAddress}"/>
+        <property name="clientId" value="datasyncBiz"/>
+    </bean>
+    <bean id="producerWrapper" class="com.wwwarehouse.commons.mq.kafka.KafkaProducerWrapper">
+        <constructor-arg ref="producerConfig"/>
+    </bean>
+    <!-- 生产者配置-->
+    <bean id="eventProcess" class="com.wwwarehouse.commons.mq.event.EventSendProcess"/>
+    <bean id="eventProducer" class="com.wwwarehouse.commons.mq.event.EventProducer"/>
+    <!--接受的-->
+    <bean id="kafkaConsumerConfig" class="com.wwwarehouse.commons.mq.kafka.KafkaConsumerConfig">
+        <property name="servers" value="${mq.serverAddress}"/>
+        <property name="groupId" value="datasyncBiz"/>
+        <property name="enableAutoCommit" value="false"/>
+        <property name="sessionTimeoutIntervalMs" value="120000"/>
+        <property name="requestTimeoutIntervalMs" value="160000"/>
+    </bean>
+
+    <bean id="consumerWrapper" class="com.wwwarehouse.commons.mq.kafka.KafkaConsumerWrapper">
+        <constructor-arg ref="kafkaConsumerConfig" />
+        <constructor-arg value="SEND_SMS" />
+    </bean>
+    <!-- 消费者配置-->
+    <bean id="eventConsumer" class="com.wwwarehouse.commons.mq.event.EventConsumer"/>
+
+    <bean id="icSmsMessageListener" class="com.wwwarehouse.xdw.openapi.consumer.IcSmsListener" init-method="init">
+        <property name="consumer" ref="eventConsumer"/>
+        <property name="topic" value="SEND_SMS"/>
+    </bean>
+</beans>

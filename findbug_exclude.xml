@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<FindBugsFilter>
+    <!--更多详细的可参考网上的类似findbugs-exclude.xml的文件-->
+    <Match>
+        <Package name="~.*\.model" />
+    </Match>
+</FindBugsFilter>

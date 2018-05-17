@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	<import resource="spring-disconf.xml" />
+	<import resource="spring-dubbo-consumer.xml" />
+	<!--<import resource="spring-config-mq.xml"/>-->
+	<import resource="spring-config-mongodb.xml"/>
+	<import resource="classpath*:spring-context-config.xml"/>
+
+	<!-- spring自动扫描注解的组件 -->
+	<context:component-scan base-package="com.wwwarehouse.xdw.openapi.web">
+		<!-- 排除对Controller的扫描,防止关联生成没有事务的Service bean. -->
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<bean id="pushClient" class="com.wwwarehouse.push.client.PushClient" lazy-init="true">
+		<constructor-arg value="${push.serverAddress}"/>
+	</bean>
+
+	<!-- 国际化资源,错误代码 -->
+	<bean id="messageSource"
+				class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename" value="i18n.message"></property>
+		<property name="parentMessageSource">
+			<bean class="org.springframework.context.support.ResourceBundleMessageSource">
+				<property name="basename">
+					<value>i18n.baseMessage</value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="messageUtil" class="com.wwwarehouse.commons.spring.MessageUtil">
+		<property name="messageSource" ref="messageSource"/>
+	</bean>
+</beans>

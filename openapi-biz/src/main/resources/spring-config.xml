@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+    <import resource="spring-config-db.xml"/>
+    <import resource="spring-config-dubbo.xml"/>
+    <import resource="spring-config-mongodb.xml"/>
+    <import resource="spring-config-mq.xml"/>
+    <import resource="spring-config-redis.xml"/>
+    <import resource="spring-config-job.xml"/>
+    <import resource="classpath*:spring-context-config.xml"/>
+    <import resource="classpath*:spring-ukid-initialize.xml"/>
+
+    <!-- 国际化资源 -->
+    <bean id="messageSource"
+          class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename" value="i18n.message"/>
+        <property name="parentMessageSource">
+            <bean class="org.springframework.context.support.ResourceBundleMessageSource">
+                <property name="basename">
+                    <value>i18n.baseMessage</value>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="messageUtil" class="com.wwwarehouse.commons.spring.MessageUtil">
+        <property name="messageSource" ref="messageSource"/>
+    </bean>
+
+    <context:component-scan base-package="com.wwwarehouse.xdw.openapi"/>
+</beans>
