@@ -45,6 +45,10 @@ public class OpenApiTestDemo {
         System.out.println(JsonUtils.toJson(response));
     }
 
+    public static void main(String[] args){
+        System.out.println("GODS");
+    }
+
     <T extends AbstractResponse> T execute(WhRequest<T> request)
             throws WhException {
         T response = this.whClient.execute(request);

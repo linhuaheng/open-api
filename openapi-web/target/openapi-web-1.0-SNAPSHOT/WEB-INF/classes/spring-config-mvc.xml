@@ -18,8 +18,10 @@
 >
 
     <!-- 包扫描-->
-    <context:component-scan base-package="com.wwwarehouse.xdw.openapi.web"/>
-
+    <context:component-scan base-package="com.wwwarehouse.xdw.openapi.web">
+        <!-- 排除对service的扫描,防止生成新的没有事务的service注入Controller -->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service" />
+    </context:component-scan>
     <mvc:annotation-driven>
         <mvc:message-converters>
             <ref bean="fastJsonHttpMessageConverter" />

@@ -10,7 +10,6 @@ import com.wwwarehouse.xdw.openapi.sdk.request.WhUploadRequest;
 import com.wwwarehouse.xdw.openapi.sdk.response.AbstractResponse;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -43,6 +42,7 @@ public class DefaultWhClient implements WhClient {
 		this.readTimeout = readTimeout;
 	}
 
+	@Override
 	public <T extends AbstractResponse> T execute(WhRequest<T> paramWHRequest)
 			throws WhException {
 		try {

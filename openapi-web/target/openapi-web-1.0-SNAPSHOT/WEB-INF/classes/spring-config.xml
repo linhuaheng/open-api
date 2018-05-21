@@ -9,9 +9,15 @@
 
 	<import resource="spring-disconf.xml" />
 	<import resource="spring-dubbo-consumer.xml" />
-	<import resource="spring-config-mq.xml"/>
+	<!--<import resource="spring-config-mq.xml"/>-->
 	<import resource="spring-config-mongodb.xml"/>
 	<import resource="classpath*:spring-context-config.xml"/>
+
+	<!-- spring自动扫描注解的组件 -->
+	<context:component-scan base-package="com.wwwarehouse.xdw.openapi.web">
+		<!-- 排除对Controller的扫描,防止关联生成没有事务的Service bean. -->
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
 
 	<bean id="pushClient" class="com.wwwarehouse.push.client.PushClient" lazy-init="true">
 		<constructor-arg value="${push.serverAddress}"/>
